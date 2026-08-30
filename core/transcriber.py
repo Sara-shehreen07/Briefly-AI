@@ -88,14 +88,47 @@ def transcribe_chunk_sarvam(chunk_path: str) -> str:
 
     return full_text.strip()
 
+def transcribe_chunk_groq(chunk_path: str) -> str:
+    """Send audio chunk to Groq's fast cloud Whisper API (whisper-large-v3)."""
+    groq_key = os.getenv("GROQ_API_KEY")
+    if not groq_key:
+        raise RuntimeError("GROQ_API_KEY is not set in environment / secrets.")
+
+    url = "https://api.groq.com/openai/v1/audio/transcriptions"
+    headers = {"Authorization": f"Bearer {groq_key}"}
+
+    with open(chunk_path, "rb") as f:
+        files = {"file": (os.path.basename(chunk_path), f, "audio/wav")}
+        data = {
+            "model": "whisper-large-v3",
+            "language": "en",
+            "response_format": "json"
+        }
+        response = requests.post(url, headers=headers, files=files, data=data, timeout=120)
+
+    if not response.ok:
+        print(f"Groq API error: {response.status_code} - {response.text}")
+        response.raise_for_status()
+
+    return response.json().get("text", "")
+
+
 def transcribe_chunk(chunk_path: str, language: str = "english") -> str:
     """
-    Route one chunk to Whisper or Sarvam depending on language choice.
-    - english  → Whisper (local model)
+    Route one chunk to Groq Whisper, local Whisper, or Sarvam depending on choice and API keys.
     - hinglish → Sarvam (translates to English while transcribing)
+    - english  → Groq Cloud Whisper if GROQ_API_KEY set, else local Whisper model
     """
     if language.lower() == "hinglish":
         return transcribe_chunk_sarvam(chunk_path)
+
+    if os.getenv("GROQ_API_KEY"):
+        try:
+            return transcribe_chunk_groq(chunk_path)
+        except Exception as e:
+            print(f"Groq API failed ({e}), falling back to local Whisper...")
+            return transcribe_chunk_whisper(chunk_path)
+
     return transcribe_chunk_whisper(chunk_path)
 
 

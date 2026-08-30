@@ -1,21 +1,5 @@
-import os
-import sys
-import gradio as gr
+import streamlit as st
 from dotenv import load_dotenv
-
-# Ensure module path resolution
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-if BASE_DIR not in sys.path:
-    sys.path.insert(0, BASE_DIR)
-
-# ZeroGPU decorator support
-try:
-    import spaces
-    gpu_decorator = spaces.GPU(duration=120)
-except Exception:
-    def gpu_decorator(func):
-        return func
-
 from core.audio_processor import process_input
 from core.transcriber import transcribe_all
 from core.summarize import summarize, generate_title
@@ -24,8 +8,9 @@ from core.rag_engine import build_rag_chain, ask_question
 
 load_dotenv()
 
+st.set_page_config(page_title="Briefly AI", layout="wide")
 
-@gpu_decorator
+
 def run_pipeline(source: str, language: str = "english") -> dict:
     chunks = process_input(source)
     transcript = transcribe_all(chunks, language)
@@ -46,144 +31,66 @@ def run_pipeline(source: str, language: str = "english") -> dict:
     }
 
 
-def handle_process(source_val: str, lang_val: str, current_state: dict):
-    if not source_val or not source_val.strip():
-        gr.Warning("Please enter a URL or file path.")
-        return (
-            current_state,
-            gr.update(visible=False),
-            "",
-            "",
-            "",
-            "",
-            "",
-            gr.update(visible=False),
-            []
-        )
+# Session State
+if "result" not in st.session_state:
+    st.session_state.result = None
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
-    try:
-        result = run_pipeline(source_val.strip(), lang_val.lower())
-        new_state = {"result": result, "chat_history": []}
-        return (
-            new_state,
-            gr.update(value=f"### {result['title']}", visible=True),
-            result["summary"],
-            result["action_items"],
-            result["key_decisions"],
-            result["open_questions"],
-            result["transcript"],
-            gr.update(visible=True),
-            []
-        )
-    except Exception as e:
-        gr.Error(f"Pipeline failed: {e}")
-        return (
-            current_state,
-            gr.update(visible=False),
-            "",
-            "",
-            "",
-            "",
-            "",
-            gr.update(visible=False),
-            []
-        )
+st.title("Briefly AI")
 
+with st.sidebar:
+    st.header("New video")
+    source = st.text_input("YouTube URL or local file path")
+    language = st.radio("Language", ["english", "hinglish"], horizontal=True)
+    run_clicked = st.button("Process", type="primary", use_container_width=True)
 
-def handle_chat(user_msg: str, history: list, current_state: dict):
-    if not user_msg or not user_msg.strip():
-        return history, "", current_state
+if run_clicked:
+    if not source.strip():
+        st.sidebar.error("Please enter a URL or file path.")
+    else:
+        with st.spinner("Processing video..."):
+            try:
+                st.session_state.result = run_pipeline(source.strip(), language)
+                st.session_state.chat_history = []
+            except Exception as e:
+                st.sidebar.error(f"Pipeline failed: {e}")
 
-    result = current_state.get("result") if current_state else None
-    if not result or not result.get("rag_chain"):
-        gr.Warning("Please process a video first.")
-        return history, "", current_state
+result = st.session_state.result
 
-    history = history or []
-    history.append({"role": "user", "content": user_msg})
+if result:
+    st.subheader(result["title"])
 
-    try:
-        answer = ask_question(result["rag_chain"], user_msg.strip())
-    except Exception as e:
-        answer = f"Error querying transcript: {e}"
-
-    history.append({"role": "assistant", "content": answer})
-    current_state["chat_history"] = history
-
-    return history, "", current_state
-
-
-with gr.Blocks(title="Briefly AI") as demo:
-    state = gr.State(value={"result": None, "chat_history": []})
-
-    gr.Markdown("# Briefly AI")
-
-    with gr.Row():
-        # Sidebar Column
-        with gr.Column(scale=1):
-            gr.Markdown("### New video")
-            source_input = gr.Textbox(
-                label="YouTube URL or local file path",
-                placeholder="Enter YouTube URL or file path"
-            )
-            language_radio = gr.Radio(
-                choices=["english", "hinglish"],
-                value="english",
-                label="Language"
-            )
-            process_btn = gr.Button("Process", variant="primary")
-
-        # Main Content Column
-        with gr.Column(scale=3):
-            title_display = gr.Markdown(visible=False)
-
-            with gr.Tabs():
-                with gr.TabItem("Summary"):
-                    summary_box = gr.Markdown()
-                with gr.TabItem("Action Items"):
-                    actions_box = gr.Markdown()
-                with gr.TabItem("Key Decisions"):
-                    decisions_box = gr.Markdown()
-                with gr.TabItem("Open Questions"):
-                    questions_box = gr.Markdown()
-                with gr.TabItem("Transcript"):
-                    transcript_box = gr.TextArea(
-                        label="Full transcript",
-                        lines=12,
-                        interactive=False
-                    )
-
-            with gr.Group(visible=False) as chat_section:
-                gr.Markdown("---")
-                gr.Markdown("### Chat with your meeting")
-                chatbot = gr.Chatbot(type="messages", height=350)
-                chat_input = gr.Textbox(
-                    placeholder="Ask a question about the video...",
-                    show_label=False
-                )
-
-    # Event Connections
-    process_btn.click(
-        fn=handle_process,
-        inputs=[source_input, language_radio, state],
-        outputs=[
-            state,
-            title_display,
-            summary_box,
-            actions_box,
-            decisions_box,
-            questions_box,
-            transcript_box,
-            chat_section,
-            chatbot
-        ]
+    tab_summary, tab_actions, tab_decisions, tab_questions, tab_transcript = st.tabs(
+        ["Summary", "Action Items", "Key Decisions", "Open Questions", "Transcript"]
     )
+    with tab_summary:
+        st.write(result["summary"])
+    with tab_actions:
+        st.write(result["action_items"])
+    with tab_decisions:
+        st.write(result["key_decisions"])
+    with tab_questions:
+        st.write(result["open_questions"])
+    with tab_transcript:
+        st.text_area("Full transcript", result["transcript"], height=300)
 
-    chat_input.submit(
-        fn=handle_chat,
-        inputs=[chat_input, chatbot, state],
-        outputs=[chatbot, chat_input, state]
-    )
+    st.divider()
+    st.subheader("Chat with your meeting")
 
-if __name__ == "__main__":
-    demo.launch()
+    for role, msg in st.session_state.chat_history:
+        with st.chat_message(role):
+            st.write(msg)
+
+    question = st.chat_input("Ask a question about the video...")
+    if question:
+        st.session_state.chat_history.append(("user", question))
+        with st.chat_message("user"):
+            st.write(question)
+        with st.chat_message("assistant"):
+            with st.spinner("Thinking..."):
+                answer = ask_question(result["rag_chain"], question)
+                st.write(answer)
+        st.session_state.chat_history.append(("assistant", answer))
+else:
+    st.info("Enter a YouTube URL or local file path in the sidebar and click Process to get started.")

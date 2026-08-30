@@ -28,11 +28,10 @@ langchain-huggingface>=0.0.3      # LangChain ↔ HuggingFace embeddings bridge
 huggingface-hub>=0.23.0           # Model downloading from HuggingFace Hub
 tiktoken>=0.7.0                   # Token counting for text splitting
 
-# ── UI & Cloud Hosting ────────────────────────────────────────────────────────
-gradio>=5.16.0
-spaces
-langchain-qdrant>=0.1.0
+# ── Cloud APIs & UI ───────────────────────────────────────────────────────────
+groq>=0.9.0
 streamlit>=1.35.0
+langchain-qdrant>=0.1.0
 
 # ── PDF & TXT Export ──────────────────────────────────────────────────────────
 reportlab>=4.2.0                  # PDF generation

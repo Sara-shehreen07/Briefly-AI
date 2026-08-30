@@ -1,23 +1,13 @@
----
-title: Briefly AI
-colorFrom: blue
-colorTo: purple
-sdk: gradio
-sdk_version: "5.16.0"
-app_file: app.py
-pinned: false
----
-
 <div align="center">
 
 <img src="assets/logo.png" alt="Briefly AI Logo" width="220" style="border-radius: 24px; box-shadow: 0 8px 24px rgba(0,0,0,0.25);" />
 
 <h2> intelligent multimodal meeting synthesis & transcript rag </h2>
 
-[![Live Demo](https://img.shields.io/badge/Hugging%20Face-Live%20Demo-blue?style=for-the-badge&logo=huggingface)](https://huggingface.co/spaces/Sarashehreen/Briefly-AI)
+[![Live Demo](https://img.shields.io/badge/Streamlit%20Cloud-Live%20Demo-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://briefly-ai.streamlit.app)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![LLM: Mistral AI](https://img.shields.io/badge/LLM-Mistral%20AI-FD6F00?style=for-the-badge&logo=mistralai&logoColor=white)](https://mistral.ai/)
-[![STT: Whisper](https://img.shields.io/badge/STT-OpenAI%20Whisper-00A67E?style=for-the-badge&logo=openai&logoColor=white)](https://github.com/openai/whisper)
+[![STT: Groq Whisper](https://img.shields.io/badge/STT-Groq%20Whisper-00A67E?style=for-the-badge&logo=openai&logoColor=white)](https://groq.com/)
 [![Vector DB: Qdrant](https://img.shields.io/badge/Vector%20DB-Qdrant-DC2626?style=for-the-badge&logo=qdrant&logoColor=white)](https://qdrant.tech/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-F59E0B.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
@@ -25,7 +15,7 @@ pinned: false
   <b>Turn hours of video and audio into structured executive summaries, action items, and conversational transcript knowledge with zero hallucinations.</b>
 </p>
 
-[**Explore the Live Demo on Hugging Face Spaces →**](https://huggingface.co/spaces/Sarashehreen/Briefly-AI)
+[**Explore the Live Demo on Streamlit Community Cloud →**](https://briefly-ai.streamlit.app)
 
 </div>
 
@@ -49,9 +39,9 @@ pinned: false
 $${\color{#6C5CE7}Cloud \space \color{#8E8E93}Deployment}$$
 
 Experience **Briefly AI** live in your browser:
-**[https://huggingface.co/spaces/Sarashehreen/Briefly-AI](https://huggingface.co/spaces/Sarashehreen/Briefly-AI)**
+**[https://briefly-ai.streamlit.app](https://briefly-ai.streamlit.app)**
 
-*Hosted on Hugging Face Spaces with dynamic ZeroGPU acceleration.*
+*Deployed on Streamlit Community Cloud with high-speed Groq Whisper cloud acceleration.*
 
 ---
 
@@ -62,7 +52,7 @@ Modern teams spend countless hours in meetings, resulting in lost action items, 
 
 **Briefly AI** solves this with an end-to-end multimodal pipeline:
 1. **Ingest**: Accepts YouTube URLs or local audio/video files (`.mp4`, `.mp3`, `.wav`, `.m4a`).
-2. **Transcribe**: Dual speech-to-text routing with **OpenAI Whisper** (English) and **Sarvam AI** (Hinglish / Indic dialects).
+2. **Transcribe**: Dual speech-to-text routing with **Groq Cloud Whisper** / **OpenAI Whisper** (English) and **Sarvam AI** (Hinglish / Indic dialects).
 3. **Synthesize**: Multi-stage **Mistral AI** extraction chains produce executive summaries, task items with assignees/deadlines, key decisions, and open questions.
 4. **Converse**: Transcript chunks are vectorized with `all-MiniLM-L6-v2` into an in-memory **Qdrant Vector Store** for context-grounded conversational Q&A.
 
@@ -84,10 +74,12 @@ flowchart TD
 
     %% Transcription Routing Subsystem
     subgraph Hybrid Speech-to-Text Routing
-        D --> E{Language Selection}
-        E -->|English| F[OpenAI Whisper ASR<br/>ZeroGPU Accelerated]
+        D --> E{Language & Key Selection}
+        E -->|English + Groq Key| F1[Groq Cloud Whisper API<br/>whisper-large-v3 · 1.5s]
+        E -->|English Offline| F2[Local OpenAI Whisper ASR<br/>PyTorch Engine]
         E -->|Hinglish / Indic| G[Sarvam AI STT-Translate API<br/>25s Sliced Sync Pipeline]
-        F --> H[Unified Full Transcript]
+        F1 --> H[Unified Full Transcript]
+        F2 --> H
         G --> H
     end
 
@@ -131,7 +123,7 @@ $${\color{#FD79A8}Zero-Hallucination \space \color{#8E8E93}Q\&A}$$
 sequenceDiagram
     autonumber
     actor User
-    participant UI as Gradio Interface
+    participant UI as Streamlit Interface
     participant RAG as RAG Pipeline
     participant DB as In-Memory Qdrant
     participant LLM as Mistral AI
@@ -154,7 +146,7 @@ sequenceDiagram
 | Capability | Technical Mechanism | Output |
 | :--- | :--- | :--- |
 | **Multimodal Ingestion** | `yt-dlp` stream extraction + `pydub` audio conversion | 16kHz mono WAV format |
-| **Dual-Engine STT** | OpenAI Whisper (`small`) + Sarvam AI (`saaras:v2.5`) | Timestamped raw text transcript |
+| **Dual-Engine STT** | Groq Cloud Whisper (`whisper-large-v3`) + Sarvam AI (`saaras:v2.5`) | Timestamped raw text transcript |
 | **Map-Reduce Synthesis** | LangChain LCEL map-reduce chain with Mistral AI | Structured executive bullet points |
 | **Action Item Mining** | Zero-shot structured extraction prompts | Task description, owner, deadline |
 | **Decision & Question Tracking** | Semantic role-labeling via Mistral AI | Numbered decisions & open topics |
@@ -168,13 +160,13 @@ sequenceDiagram
 
 | Layer | Technologies |
 | :--- | :--- |
-| **Frontend & UI** | [Gradio 5](https://gradio.app/) |
+| **Frontend & UI** | [Streamlit](https://streamlit.io/) |
 | **LLM & Orchestration** | [LangChain LCEL](https://python.langchain.com/), [Mistral AI](https://mistral.ai/) (`mistral-small-latest`) |
-| **Speech-to-Text** | [OpenAI Whisper](https://github.com/openai/whisper), [Sarvam AI](https://www.sarvam.ai/) |
+| **Speech-to-Text** | [Groq Cloud Whisper](https://groq.com/), [OpenAI Whisper](https://github.com/openai/whisper), [Sarvam AI](https://www.sarvam.ai/) |
 | **Vector DB & Search** | [Qdrant](https://qdrant.tech/) (`langchain-qdrant`, in-memory mode) |
 | **Dense Embeddings** | [Hugging Face](https://huggingface.co/) (`sentence-transformers/all-MiniLM-L6-v2`) |
 | **Audio Processing** | `FFmpeg`, `pydub`, `yt-dlp` |
-| **Deployment** | [Hugging Face Spaces](https://huggingface.co/spaces) (ZeroGPU / Docker) |
+| **Deployment** | [Streamlit Community Cloud](https://share.streamlit.io) |
 
 </div>
 
@@ -183,9 +175,9 @@ sequenceDiagram
 ## Engineering Highlights
 $${\color{#0984E3}Production \space \color{#8E8E93}Design}$$
 
-- **ZeroGPU Acceleration**: Integrated `@spaces.GPU` decorators to dynamically allocate Nvidia A100 GPU compute during Whisper inference, speeding up audio transcription by ~10x over CPU execution.
+- **High-Speed Cloud Transcription**: Integrated Groq's cloud Whisper LPU inference (`whisper-large-v3`), accelerating audio transcription to ~1.5 seconds per chunk and keeping server RAM footprint under 80 MB.
 - **In-Memory Vector Isolation**: Replaced persistent disk paths with transient in-memory Qdrant stores (`location=":memory:"`), eliminating SQLite lock contentions during multi-user web traffic.
-- **Session State Decoupling**: Utilizes `gr.State()` to isolate video contexts, transcripts, and chat histories across concurrent visitors.
+- **Session State Isolation**: Employs `st.session_state` to isolate video contexts, transcripts, and chat histories across concurrent visitors.
 - **Audio Chunking Engine**: Slices long audio recordings into 10-minute master chunks and 25-second API sub-chunks to adhere to synchronous STT constraints.
 
 ---
@@ -224,6 +216,7 @@ pip install -r requirements.txt
 ### 3. Configure API Keys
 Create a `.env` file in the root folder:
 ```env
+GROQ_API_KEY=your_groq_api_key_here
 MISTRAL_API_KEY=your_mistral_api_key_here
 SARVAM_API_KEY=your_sarvam_api_key_here
 WHISPER_MODEL=small
@@ -231,9 +224,9 @@ WHISPER_MODEL=small
 
 ### 4. Launch
 ```bash
-python app.py
+streamlit run app.py
 ```
-Open [http://127.0.0.1:7860](http://127.0.0.1:7860) in your browser.
+Open [http://localhost:8501](http://localhost:8501) in your browser.
 
 ---
 
@@ -249,9 +242,9 @@ $${\color{#6C5CE7}Codebase \space \color{#8E8E93}Layout}$$
 │   ├── extractor.py        # LCEL chains for actions, decisions & questions
 │   ├── rag_engine.py       # LangChain LCEL RAG retriever & context QA chain
 │   ├── summarize.py        # Map-Reduce summarization & title generation
-│   ├── transcriber.py      # Dual STT engine (OpenAI Whisper + Sarvam AI)
+│   ├── transcriber.py      # Dual STT engine (Groq Whisper + OpenAI Whisper + Sarvam AI)
 │   └── vector_store.py     # Qdrant in-memory vector store & embedding setup
-├── app.py                  # Gradio application entrypoint & session controller
+├── app.py                  # Streamlit application entrypoint & session controller
 ├── packages.txt            # Linux container system dependencies (ffmpeg)
 ├── requirements.txt        # Python dependency manifest
 ├── README.md               # Architecture documentation & quickstart
