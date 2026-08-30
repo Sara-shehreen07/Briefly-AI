@@ -1,8 +1,7 @@
 <div align="center">
 
-<img src="./assets/logo.png" alt="Briefly AI Logo" width="220" />
-
-<h2> intelligent multimodal meeting synthesis & transcript rag </h2>
+# BRIEFLY AI
+### Intelligent Multimodal Meeting Synthesis & Transcript RAG
 
 [![Live Demo](https://img.shields.io/badge/Streamlit%20Cloud-Live%20Demo-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://briefly-ai.streamlit.app)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
@@ -63,55 +62,18 @@ $${\color{#00CEC9}End-to-End \space \color{#8E8E93}Pipeline}$$
 
 ```mermaid
 flowchart TD
-    %% Input Layer
-    A([User Input: YouTube URL or Local File]) --> B[Audio Acquisition & Preprocessing]
+    A[Audio or Video Input] --> B[Audio Extraction & Chunking]
+    B --> C[Speech-to-Text Engine<br/>Groq Whisper / Sarvam AI]
+    C --> D[Full Transcript]
     
-    %% Audio Processing Subsystem
-    subgraph Audio Processing
-        B -->|yt-dlp / pydub| C[FFmpeg 16kHz Mono WAV Extraction]
-        C --> D[10-Minute Chunking Engine]
-    end
-
-    %% Transcription Routing Subsystem
-    subgraph Hybrid Speech-to-Text Routing
-        D --> E{Language & Key Selection}
-        E -->|English + Groq Key| F1[Groq Cloud Whisper API<br/>whisper-large-v3 · 1.5s]
-        E -->|English Offline| F2[Local OpenAI Whisper ASR<br/>PyTorch Engine]
-        E -->|Hinglish / Indic| G[Sarvam AI STT-Translate API<br/>25s Sliced Sync Pipeline]
-        F1 --> H[Unified Full Transcript]
-        F2 --> H
-        G --> H
-    end
-
-    %% Intelligence Synthesis Subsystem
-    subgraph LLM Synthesis Engine - Mistral AI
-        H --> I1[Title Generator<br/>ChatMistralAI]
-        H --> I2[Map-Reduce Summarizer<br/>Chunk Size: 3000 / Overlap: 200]
-        H --> I3[Structured Action Items Extractor<br/>Task + Assignee + Deadline]
-        H --> I4[Key Decisions Extractor]
-        H --> I5[Open Questions Extractor]
-    end
-
-    %% Vector RAG Subsystem
-    subgraph In-Memory RAG Knowledge Base
-        H --> J[Recursive Character Text Splitter<br/>Chunk: 500 / Overlap: 50]
-        J --> K[HuggingFace Embeddings<br/>all-MiniLM-L6-v2]
-        K --> L[(In-Memory Qdrant Vector Store)]
-    end
-
-    %% Presentation Layer
-    subgraph Interactive UI
-        I1 --> M[Tabbed Intelligence Dashboard<br/>Summary, Actions, Decisions, Questions, Transcript]
-        I2 --> M
-        I3 --> M
-        I4 --> M
-        I5 --> M
-        
-        N[User Query] --> O[Dense Semantic Retriever<br/>k=4 Top Chunks]
-        L --> O
-        O --> P[Context-Constrained Mistral QA Chain]
-        P --> Q[Grounded Answer Response]
-    end
+    D --> E[Mistral AI Intelligence]
+    D --> F[Qdrant Vector Store]
+    
+    E --> G[Executive Summary<br/>Action Items & Decisions]
+    F --> H[Semantic Search & RAG<br/>Interactive Q and A]
+    
+    G --> I[Streamlit Web App]
+    H --> I
 ```
 
 ---
