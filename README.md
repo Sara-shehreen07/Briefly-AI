@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/logo.png" alt="Briefly AI Logo" width="220" style="border-radius: 24px; box-shadow: 0 8px 24px rgba(0,0,0,0.25);" />
+<img src="./assets/logo.png" alt="Briefly AI Logo" width="220" />
 
 <h2> intelligent multimodal meeting synthesis & transcript rag </h2>
 
