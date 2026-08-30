@@ -46,7 +46,7 @@ Experience **Briefly AI** live in your browser:
 ---
 
 ## Overview
-$${\color{#6C5CE7}Problem \space \color{#8E8E93}\& \space \color{#6C5CE7}Solution}$$
+$${\color{#6C5CE7}Problem \space \color{#8E8E93}and \space \color{#6C5CE7}Solution}$$
 
 Modern teams spend countless hours in meetings, resulting in lost action items, buried decisions, and unsearchable video recordings. 
 
@@ -101,7 +101,7 @@ flowchart TD
 
     %% Presentation Layer
     subgraph Interactive UI
-        I1 --> M[Tabbed Intelligence Dashboard<br/>Summary | Actions | Decisions | Questions | Transcript]
+        I1 --> M[Tabbed Intelligence Dashboard<br/>Summary, Actions, Decisions, Questions, Transcript]
         I2 --> M
         I3 --> M
         I4 --> M
@@ -117,7 +117,7 @@ flowchart TD
 ---
 
 ## RAG Retrieval Pipeline
-$${\color{#FD79A8}Zero-Hallucination \space \color{#8E8E93}Q\&A}$$
+$${\color{#FD79A8}Zero-Hallucination \space \color{#8E8E93}Q and A}$$
 
 ```mermaid
 sequenceDiagram
