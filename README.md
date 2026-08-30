@@ -1,6 +1,5 @@
 ---
 title: Briefly AI
-emoji: 🎙️
 colorFrom: blue
 colorTo: purple
 sdk: gradio
@@ -15,7 +14,7 @@ pinned: false
 
 <h2> intelligent multimodal meeting synthesis & transcript rag </h2>
 
-[![Live Demo](https://img.shields.io/badge/🤗%20Hugging%20Face-Live%20Demo-blue?style=for-the-badge&logo=huggingface)](https://huggingface.co/spaces/Sarashehreen/Briefly-AI)
+[![Live Demo](https://img.shields.io/badge/Hugging%20Face-Live%20Demo-blue?style=for-the-badge&logo=huggingface)](https://huggingface.co/spaces/Sarashehreen/Briefly-AI)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![LLM: Mistral AI](https://img.shields.io/badge/LLM-Mistral%20AI-FD6F00?style=for-the-badge&logo=mistralai&logoColor=white)](https://mistral.ai/)
 [![STT: Whisper](https://img.shields.io/badge/STT-OpenAI%20Whisper-00A67E?style=for-the-badge&logo=openai&logoColor=white)](https://github.com/openai/whisper)
@@ -26,37 +25,37 @@ pinned: false
   <b>Turn hours of video and audio into structured executive summaries, action items, and conversational transcript knowledge with zero hallucinations.</b>
 </p>
 
-[**🚀 Explore the Live Demo on Hugging Face Spaces →**](https://huggingface.co/spaces/Sarashehreen/Briefly-AI)
+[**Explore the Live Demo on Hugging Face Spaces →**](https://huggingface.co/spaces/Sarashehreen/Briefly-AI)
 
 </div>
 
 ---
 
-## 🗺️ Navigation
-- [<code>⚡ Live Demo</code>](#-live-demo)
-- [<code>📌 Overview</code>](#-overview)
-- [<code>🏗️ System Architecture</code>](#-system-architecture)
-- [<code>🔄 RAG Retrieval Pipeline</code>](#-rag-retrieval-pipeline)
-- [<code>✨ Core Capabilities</code>](#-core-capabilities)
-- [<code>🛠️ Tech Stack</code>](#-tech-stack)
-- [<code>⚙️ Engineering Highlights</code>](#-engineering-highlights)
-- [<code>📦 Quickstart & Setup</code>](#-quickstart--setup)
-- [<code>📁 Repository Structure</code>](#-repository-structure)
-- [<code>📝 License</code>](#-license)
+## Navigation
+- [<code>Live Demo</code>](#live-demo)
+- [<code>Overview</code>](#overview)
+- [<code>System Architecture</code>](#system-architecture)
+- [<code>RAG Retrieval Pipeline</code>](#rag-retrieval-pipeline)
+- [<code>Core Capabilities</code>](#core-capabilities)
+- [<code>Tech Stack</code>](#tech-stack)
+- [<code>Engineering Highlights</code>](#engineering-highlights)
+- [<code>Quickstart & Setup</code>](#quickstart--setup)
+- [<code>Repository Structure</code>](#repository-structure)
+- [<code>License</code>](#license)
 
 ---
 
-## ⚡ Live Demo
+## Live Demo
 $${\color{#6C5CE7}Cloud \space \color{#8E8E93}Deployment}$$
 
 Experience **Briefly AI** live in your browser:
-🔗 **[https://huggingface.co/spaces/Sarashehreen/Briefly-AI](https://huggingface.co/spaces/Sarashehreen/Briefly-AI)**
+**[https://huggingface.co/spaces/Sarashehreen/Briefly-AI](https://huggingface.co/spaces/Sarashehreen/Briefly-AI)**
 
 *Hosted on Hugging Face Spaces with dynamic ZeroGPU acceleration.*
 
 ---
 
-## 📌 Overview
+## Overview
 $${\color{#6C5CE7}Problem \space \color{#8E8E93}\& \space \color{#6C5CE7}Solution}$$
 
 Modern teams spend countless hours in meetings, resulting in lost action items, buried decisions, and unsearchable video recordings. 
@@ -69,7 +68,7 @@ Modern teams spend countless hours in meetings, resulting in lost action items, 
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 $${\color{#00CEC9}End-to-End \space \color{#8E8E93}Pipeline}$$
 
 ```mermaid
@@ -125,7 +124,7 @@ flowchart TD
 
 ---
 
-## 🔄 RAG Retrieval Pipeline
+## RAG Retrieval Pipeline
 $${\color{#FD79A8}Zero-Hallucination \space \color{#8E8E93}Q\&A}$$
 
 ```mermaid
@@ -150,7 +149,7 @@ sequenceDiagram
 
 ---
 
-## ✨ Core Capabilities
+## Core Capabilities
 
 | Capability | Technical Mechanism | Output |
 | :--- | :--- | :--- |
@@ -163,7 +162,7 @@ sequenceDiagram
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 <div align="center">
 
@@ -181,7 +180,7 @@ sequenceDiagram
 
 ---
 
-## ⚙️ Engineering Highlights
+## Engineering Highlights
 $${\color{#0984E3}Production \space \color{#8E8E93}Design}$$
 
 - **ZeroGPU Acceleration**: Integrated `@spaces.GPU` decorators to dynamically allocate Nvidia A100 GPU compute during Whisper inference, speeding up audio transcription by ~10x over CPU execution.
@@ -191,7 +190,7 @@ $${\color{#0984E3}Production \space \color{#8E8E93}Design}$$
 
 ---
 
-## 📦 Quickstart & Setup
+## Quickstart & Setup
 $${\color{#00B894}Local \space \color{#8E8E93}Installation}$$
 
 ### 1. Prerequisites
@@ -238,7 +237,7 @@ Open [http://127.0.0.1:7860](http://127.0.0.1:7860) in your browser.
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 $${\color{#6C5CE7}Codebase \space \color{#8E8E93}Layout}$$
 
 ```text
@@ -262,6 +261,6 @@ $${\color{#6C5CE7}Codebase \space \color{#8E8E93}Layout}$$
 
 ---
 
-## 📝 License
+## License
 
 This project is licensed under the [MIT License](LICENSE).
