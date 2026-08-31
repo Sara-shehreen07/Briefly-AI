@@ -21,8 +21,25 @@
 .stApp { background: var(--bg) !important; font-family: var(--font-ui); }
 header[data-testid="stHeader"] { background: transparent !important; }
 [data-testid="stToolbar"] { background: transparent !important; visibility: visible !important; }
-#MainMenu, [data-testid="stMainMenu"], .stAppDeployButton, [data-testid="stAppDeployButton"], footer {
+#MainMenu,
+[data-testid="stMainMenu"],
+.stAppDeployButton,
+[data-testid="stAppDeployButton"],
+footer,
+[data-testid="stDecoration"],
+[data-testid="stStatusWidget"],
+div[class*="viewerBadge"],
+div[class*="manageApp"],
+div[class*="StatusWidget"],
+div[class*="ViewerBadge"],
+div[class*="ManageApp"],
+div[class*="floating-buttons"],
+[data-testid="manage-app-button"],
+.viewerBadge_container,
+div[data-testid="stToolbarActions"] {
   display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
 }
 .block-container { padding-top: 3.5rem; max-width: 920px; }
 

@@ -126,17 +126,9 @@ else:
     )
 
     with st.container(border=True):
-        tab_summary, tab_actions, tab_decisions, tab_questions, tab_transcript = st.tabs(
-            ["Summary", "Action Items", "Key Decisions", "Open Questions", "Transcript"]
-        )
+        tab_summary, tab_transcript = st.tabs(["Summary", "Transcript"])
         with tab_summary:
             st.markdown(result["summary"])
-        with tab_actions:
-            st.markdown(result["action_items"])
-        with tab_decisions:
-            st.markdown(result["key_decisions"])
-        with tab_questions:
-            st.markdown(result["open_questions"])
         with tab_transcript:
             st.text_area(
                 "Full transcript",

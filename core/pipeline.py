@@ -4,7 +4,6 @@ from concurrent.futures import ThreadPoolExecutor
 from core.audio_processor import process_input
 from core.transcriber import transcribe_all
 from core.summarize import summarize, generate_title
-from core.extractor import extract_action_items, extract_key_decisions, extract_questions
 
 
 def get_transcript(source: str, language: str = "english", on_stage=None) -> str:
@@ -24,8 +23,7 @@ def get_transcript(source: str, language: str = "english", on_stage=None) -> str
 
 
 def synthesize(transcript: str, language: str = "english", on_stage=None) -> dict:
-    """Stage 2: the 5 parallel LLM calls. ~10-25s; cheap enough to re-run
-    uncached, which allows live stage callbacks from the UI layer."""
+    """Stage 2: LLM calls for title and summary."""
     def _emit(stage: str, detail: str = ""):
         if on_stage:
             on_stage(stage, detail)
@@ -33,14 +31,11 @@ def synthesize(transcript: str, language: str = "english", on_stage=None) -> dic
     if not transcript.strip():
         raise ValueError("No speech detected in the audio.")
 
-    _emit("synthesize", "Summary, action items, decisions, questions")
-    with ThreadPoolExecutor(max_workers=5) as executor:
+    _emit("synthesize", "Generating summary…")
+    with ThreadPoolExecutor(max_workers=2) as executor:
         futures = {
             "title": executor.submit(generate_title, transcript),
             "summary": executor.submit(summarize, transcript),
-            "action_items": executor.submit(extract_action_items, transcript),
-            "key_decisions": executor.submit(extract_key_decisions, transcript),
-            "open_questions": executor.submit(extract_questions, transcript),
         }
         results = {name: future.result() for name, future in futures.items()}
 
@@ -49,9 +44,6 @@ def synthesize(transcript: str, language: str = "english", on_stage=None) -> dic
         "title": results["title"],
         "transcript": transcript,
         "summary": results["summary"],
-        "action_items": results["action_items"],
-        "key_decisions": results["key_decisions"],
-        "open_questions": results["open_questions"],
         "language": language,
     }
 
