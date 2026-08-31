@@ -6,43 +6,73 @@ import yt_dlp
 
 
 def download_youtube_audio(url: str, output_dir: str = None) -> str:
-    """Download the best available audio stream as-is (no WAV postprocessing;
-    conversion + chunking happen in one streaming ffmpeg pass later)."""
+    """Download the best available audio stream with multi-client fallbacks
+    optimized for cloud/datacenter IP resilience."""
     target_dir = output_dir or tempfile.gettempdir()
     os.makedirs(target_dir, exist_ok=True)
     output_path = os.path.join(target_dir, "%(id)s.%(ext)s")
-    ydl_opts = {
-        "format": "bestaudio/best",
-        "outtmpl": output_path,
-        "quiet": True,
-        "noplaylist": True,
-        "extractor_args": {
-            "youtube": {
-                "player_client": ["android", "web"],
-            }
+
+    client_strategies = [
+        # Strategy 1: iOS & Android mobile clients (most reliable on datacenter IPs)
+        {
+            "extractor_args": {
+                "youtube": {
+                    "player_client": ["ios", "android", "mweb"],
+                    "player_skip": ["webpage", "configs"],
+                }
+            },
+            "http_headers": {
+                "User-Agent": (
+                    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) "
+                    "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"
+                ),
+                "Accept-Language": "en-US,en;q=0.9",
+            },
         },
-    }
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        # Strategy 2: Embedded / TV clients fallback
+        {
+            "extractor_args": {
+                "youtube": {
+                    "player_client": ["tv_embedded", "android_creator", "web_creator"],
+                }
+            },
+            "http_headers": {
+                "User-Agent": "com.google.android.youtube/19.29.37 (Linux; U; Android 11) gzip",
+                "Accept-Language": "en-US,en;q=0.9",
+            },
+        },
+    ]
+
+    last_error = None
+    for strategy in client_strategies:
+        ydl_opts = {
+            "format": "ba/b[acodec!=none]/best",
+            "outtmpl": output_path,
+            "quiet": True,
+            "no_warnings": True,
+            "noplaylist": True,
+            "socket_timeout": 30,
+            "retries": 3,
+            **strategy,
+        }
         try:
-            info = ydl.extract_info(url, download=False)
-        except yt_dlp.utils.DownloadError as e:
-            raise ValueError(
-                f"Could not retrieve video info (private/age-gated/live/unsupported URL): {e}"
-            ) from e
-        if info.get("_type") == "playlist" or "entries" in info:
-            raise ValueError("Playlist URL detected. Please provide a single video URL.")
-        if info.get("is_live"):
-            raise ValueError("Live streams are not supported. Please provide a completed video.")
-        try:
-            info = ydl.extract_info(url, download=True)
-        except yt_dlp.utils.DownloadError as e:
-            raise ValueError(
-                f"Could not download audio (private/age-gated/unsupported URL): {e}"
-            ) from e
-        filename = ydl.prepare_filename(info)
-    if not os.path.exists(filename):
-        raise ValueError(f"Downloaded file not found on disk: {filename}")
-    return filename
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url, download=False)
+                if info.get("_type") == "playlist" or "entries" in info:
+                    raise ValueError("Playlist URL detected. Please provide a single video URL.")
+                if info.get("is_live"):
+                    raise ValueError("Live streams are not supported. Please provide a completed video.")
+                info = ydl.extract_info(url, download=True)
+                filename = ydl.prepare_filename(info)
+                if os.path.exists(filename):
+                    return filename
+        except Exception as e:
+            last_error = e
+            continue
+
+    raise ValueError(
+        f"Could not download audio from YouTube (URL restricted, private, or blocked by YouTube): {last_error}"
+    )
 
 
 def convert_to_wav(input_path: str, output_dir: str = None) -> str:

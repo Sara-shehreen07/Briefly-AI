@@ -1,5 +1,6 @@
 import html
 import os
+import tempfile
 
 import streamlit as st
 from dotenv import load_dotenv
@@ -45,12 +46,17 @@ if "rag_chain" not in st.session_state:
 with st.sidebar:
     st.markdown(
         '<div class="bx-brand">Briefly</div>'
-        '<div class="bx-brand-sub">Meeting notes from any video</div>',
+        '<div class="bx-brand-sub">Meeting notes from any video or audio</div>',
         unsafe_allow_html=True,
     )
     source = st.text_input(
         "YouTube URL or local file path",
         placeholder="https://youtube.com/watch?v=…",
+        label_visibility="collapsed",
+    )
+    uploaded_file = st.file_uploader(
+        "Upload audio/video",
+        type=["mp3", "wav", "m4a", "mp4", "webm", "ogg"],
         label_visibility="collapsed",
     )
     language = st.pills(
@@ -65,8 +71,18 @@ with st.sidebar:
 error_msg = None
 
 if run_clicked:
-    if not source.strip():
-        error_msg = "Enter a URL or file path first."
+    input_source = ""
+    if uploaded_file is not None:
+        upload_dir = os.path.join(tempfile.gettempdir(), "briefly_uploads")
+        os.makedirs(upload_dir, exist_ok=True)
+        input_source = os.path.join(upload_dir, uploaded_file.name)
+        with open(input_source, "wb") as f:
+            f.write(uploaded_file.getbuffer())
+    elif source.strip():
+        input_source = source.strip()
+
+    if not input_source:
+        error_msg = "Please enter a YouTube URL or upload an audio/video file."
     else:
         st.session_state.result = None
         st.session_state.chat_history = []
@@ -79,7 +95,7 @@ if run_clicked:
                         status.write(detail)
 
                 status.update(label="Fetching & transcribing…")
-                transcript = _cached_transcript(source.strip(), language)
+                transcript = _cached_transcript(input_source, language)
                 # synthesize runs UNCACHED so the callback can drive the
                 # status widget live (callbacks inside cache_data are illegal).
                 st.session_state.result = synthesize(transcript, language, on_stage=_stage)

@@ -77,6 +77,27 @@ section[data-testid="stSidebar"] hr { border-color: var(--border); }
   outline: none !important;
 }
 
+/* File Uploader → zinc dropzone */
+[data-testid="stFileUploader"] section {
+  background: var(--card-2) !important;
+  border: 1px dashed var(--border) !important;
+  border-radius: 8px !important;
+  padding: 0.75rem !important;
+}
+[data-testid="stFileUploader"] section:hover {
+  border-color: var(--muted) !important;
+}
+[data-testid="stFileUploader"] button {
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--fg) !important;
+  border-radius: 6px !important;
+  font-size: 0.75rem !important;
+}
+[data-testid="stFileUploader"] small {
+  color: var(--faint) !important;
+}
+
 /* Buttons: white primary on zinc (shadcn default).
    1.62 renders buttons as [data-testid=stBaseButton-*]. */
 .stButton > button,
