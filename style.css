@@ -281,18 +281,27 @@ button[data-testid="stBaseButton-primary"]:hover { background: #e4e4e7; }
 }
 
 /* Sidebar brand */
-.bx-brand {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 0.25rem;
+.bx-sidebar-logo {
+  margin-bottom: 1.75rem;
+}
+.bx-sidebar-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--fg);
+  background: var(--card-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.85rem;
+  margin-bottom: 0.5rem;
 }
 .bx-brand-sub {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: var(--muted);
-  margin-bottom: 2rem;
+  line-height: 1.4;
 }
 
 /* Empty state: centered invitation */

@@ -45,8 +45,10 @@ if "rag_chain" not in st.session_state:
 # ── Sidebar: new meeting ────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown(
-        '<div class="bx-brand">Briefly</div>'
-        '<div class="bx-brand-sub">Meeting notes from any recording</div>',
+        '<div class="bx-sidebar-logo">'
+        '<div class="bx-sidebar-mark">▚ briefly</div>'
+        '<div class="bx-brand-sub">Meeting notes from any recording</div>'
+        '</div>',
         unsafe_allow_html=True,
     )
     uploaded_file = st.file_uploader(
@@ -108,7 +110,7 @@ if result is None:
             '<div class="bx-empty">'
             '<div class="bx-mark">▚ briefly</div>'
             '<div class="bx-title">Turn meetings into actionable notes</div>'
-            '<div class="bx-sub">Upload an audio or video file in the sidebar to extract summaries, decisions, and chat with the transcript.</div>'
+            '<div class="bx-sub">Upload an audio or video file in the sidebar to generate summaries and chat with the transcript.</div>'
             "</div>",
             unsafe_allow_html=True,
         )
