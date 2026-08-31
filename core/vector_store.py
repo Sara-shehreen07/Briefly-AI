@@ -1,4 +1,3 @@
-import os
 from langchain_qdrant import QdrantVectorStore
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -35,16 +34,8 @@ def build_vector_store(transcript:str)->QdrantVectorStore:
     )
     return vector_store
 
-def load_vector_store()->QdrantVectorStore:
-    embeddings = get_embeddings()
-    vector_store = QdrantVectorStore(
-        collection_name= COLLECTION_NAME,
-        embedding_function = embeddings
-    )
-    return vector_store
-
-def get_retreiver(vector_store:QdrantVectorStore,k:int=4):
+def get_retriever(vector_store: QdrantVectorStore, k: int = 4):
     return vector_store.as_retriever(
-        search_type = "similarity",
-        search_kwargs = {"k":k}
+        search_type="similarity",
+        search_kwargs={"k": k}
     )

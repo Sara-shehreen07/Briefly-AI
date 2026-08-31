@@ -1,40 +1,59 @@
-import whisper
 import os
+from concurrent.futures import ThreadPoolExecutor
+from threading import BoundedSemaphore
+
 import requests
 from pydub import AudioSegment
 from dotenv import load_dotenv
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception
 
 # Sarvam's sync STT-translate API rejects audio longer than 30s.
 # We slice each chunk into 25s pieces (with a 5s safety margin) before sending.
 load_dotenv()
 
 SARVAM_PIECE_SECONDS = 25
-
-WHISPER_MODEL = os.getenv("WHISPER_MODEL", "small")
-
-SARVAM_API_KEY = os.getenv("SARVAM_API_KEY")
 SARVAM_STT_TRANSLATE_URL = "https://api.sarvam.ai/speech-to-text-translate"
-SARVAM_MODEL = os.getenv("SARVAM_STT_MODEL", "saaras:v2.5")
 
-_model = None
+SARVAM_MAX_CONCURRENCY = 6   # global cap on in-flight Sarvam requests
+GROQ_MAX_CONCURRENCY = 6     # Groq free tier ~30 RPM; 6 workers with retry is safe
 
-def load_model():
-    global _model  
-    if _model is None: 
-        print(f"Loading Whisper model: {WHISPER_MODEL} ...")
-        _model = whisper.load_model(WHISPER_MODEL) 
-        print("Whisper model loaded.")
-    return _model 
+_sarvam_slots = BoundedSemaphore(SARVAM_MAX_CONCURRENCY)
 
 
-def transcribe_chunk_whisper(chunk_path: str) -> str:
-    model = load_model()  
-    result = model.transcribe(chunk_path, language="en", verbose=True)
-    return result["text"]  
+def _retryable(e: BaseException) -> bool:
+    """Retry only transient failures (429/5xx/timeout); fail fast on 4xx like 401/413."""
+    if isinstance(e, (requests.ConnectionError, requests.Timeout)):
+        return True
+    return (
+        isinstance(e, requests.HTTPError)
+        and e.response is not None
+        and e.response.status_code in (429, 500, 502, 503, 504)
+    )
 
 
+def _wait(retry_state):
+    """Honor Retry-After header when present, else exponential backoff (2s..15s)."""
+    exc = retry_state.outcome.exception() if retry_state.outcome else None
+    if isinstance(exc, requests.HTTPError) and exc.response is not None:
+        retry_after = exc.response.headers.get("Retry-After")
+        if retry_after:
+            try:
+                return max(float(retry_after), 1.0)
+            except ValueError:
+                pass
+    return wait_exponential(multiplier=1, min=2, max=15)(retry_state)
+
+
+_RETRY = dict(
+    retry=retry_if_exception(_retryable),
+    stop=stop_after_attempt(4),
+    wait=_wait,
+)
+
+
+@retry(**_RETRY)
 def _send_to_sarvam(piece_path: str) -> str:
-    """Send one ≤30s WAV file to Sarvam and return the English transcript."""
+    """Send one <=30s WAV file to Sarvam and return the English transcript."""
     api_key = os.getenv("SARVAM_API_KEY")
     if not api_key:
         raise RuntimeError("SARVAM_API_KEY is not set in environment / secrets.")
@@ -43,17 +62,17 @@ def _send_to_sarvam(piece_path: str) -> str:
     with open(piece_path, "rb") as f:
         files = {"file": (os.path.basename(piece_path), f, "audio/wav")}
         data = {"model": os.getenv("SARVAM_STT_MODEL", "saaras:v2.5"), "with_diarization": "false"}
-        response = requests.post(
-            SARVAM_STT_TRANSLATE_URL,
-            headers=headers,
-            files=files,
-            data=data,
-            timeout=120,
-        )
+        with _sarvam_slots:
+            response = requests.post(
+                SARVAM_STT_TRANSLATE_URL,
+                headers=headers,
+                files=files,
+                data=data,
+                timeout=120,
+            )
 
     if not response.ok:
-        print(f"\n Sarvam returned {response.status_code}")
-        print(f"Response body: {response.text}\n")
+        print(f"Sarvam returned {response.status_code}")
         response.raise_for_status()
 
     return response.json().get("transcript", "")
@@ -61,38 +80,38 @@ def _send_to_sarvam(piece_path: str) -> str:
 
 def transcribe_chunk_sarvam(chunk_path: str) -> str:
     """
-    Sarvam sync API only accepts ≤30s audio. We split this chunk into
-    25-second pieces, send each separately, and join the transcripts.
+    Sarvam sync API only accepts <=30s audio. We split this chunk into
+    25-second pieces, send them concurrently (order-preserving), and join.
     """
-    api_key = os.getenv("SARVAM_API_KEY")
-    if not api_key:
-        raise RuntimeError("SARVAM_API_KEY is not set in environment / secrets.")
-
     audio = AudioSegment.from_wav(chunk_path)
     piece_ms = SARVAM_PIECE_SECONDS * 1000
 
-    full_text = ""
-    total_pieces = (len(audio) + piece_ms - 1) // piece_ms
-
+    piece_paths = []
     for i, start in enumerate(range(0, len(audio), piece_ms)):
-        piece = audio[start: start + piece_ms]
+        piece = audio[start : start + piece_ms]
+        if len(piece) == 0:
+            continue
         piece_path = f"{chunk_path}_sv_{i}.wav"
         piece.export(piece_path, format="wav")
+        piece_paths.append(piece_path)
 
-        try:
-            print(f"  → Sarvam piece {i + 1}/{total_pieces} ...")
-            full_text += _send_to_sarvam(piece_path) + " "
-        finally:
-            if os.path.exists(piece_path):
-                os.remove(piece_path)
+    try:
+        with ThreadPoolExecutor(max_workers=SARVAM_MAX_CONCURRENCY) as ex:
+            texts = list(ex.map(_send_to_sarvam, piece_paths))
+    finally:
+        for p in piece_paths:
+            if os.path.exists(p):
+                os.remove(p)
 
-    return full_text.strip()
+    return " ".join(t for t in texts if t).strip()
 
+
+@retry(**_RETRY)
 def transcribe_chunk_groq(chunk_path: str) -> str:
     """Send audio chunk to Groq's fast cloud Whisper API (whisper-large-v3)."""
     groq_key = os.getenv("GROQ_API_KEY")
     if not groq_key:
-        raise RuntimeError("GROQ_API_KEY is not set in environment / secrets.")
+        raise RuntimeError("GROQ_API_KEY is not set in environment / .env.")
 
     url = "https://api.groq.com/openai/v1/audio/transcriptions"
     headers = {"Authorization": f"Bearer {groq_key}"}
@@ -102,12 +121,12 @@ def transcribe_chunk_groq(chunk_path: str) -> str:
         data = {
             "model": "whisper-large-v3",
             "language": "en",
-            "response_format": "json"
+            "response_format": "json",
         }
         response = requests.post(url, headers=headers, files=files, data=data, timeout=120)
 
     if not response.ok:
-        print(f"Groq API error: {response.status_code} - {response.text}")
+        print(f"Groq API error: {response.status_code}")
         response.raise_for_status()
 
     return response.json().get("text", "")
@@ -115,38 +134,32 @@ def transcribe_chunk_groq(chunk_path: str) -> str:
 
 def transcribe_chunk(chunk_path: str, language: str = "english") -> str:
     """
-    Route one chunk to Groq Whisper, local Whisper, or Sarvam depending on choice and API keys.
-    - hinglish → Sarvam (translates to English while transcribing)
-    - english  → Groq Cloud Whisper if GROQ_API_KEY set, else local Whisper model
+    Route one chunk to Groq Whisper or Sarvam depending on language selection.
+    - hinglish -> Sarvam (translates to English while transcribing)
+    - english  -> Groq Cloud Whisper (requires GROQ_API_KEY)
     """
     if language.lower() == "hinglish":
         return transcribe_chunk_sarvam(chunk_path)
 
-    if os.getenv("GROQ_API_KEY"):
-        try:
-            return transcribe_chunk_groq(chunk_path)
-        except Exception as e:
-            print(f"Groq API failed ({e}), falling back to local Whisper...")
-            return transcribe_chunk_whisper(chunk_path)
+    if not os.getenv("GROQ_API_KEY"):
+        raise RuntimeError("GROQ_API_KEY is not set in environment / .env. Please set GROQ_API_KEY to enable speech-to-text.")
 
-    return transcribe_chunk_whisper(chunk_path)
+    return transcribe_chunk_groq(chunk_path)
 
 
 def transcribe_all(chunks: list, language: str = "english") -> str:
-
-    full_transcript = "" 
-
-    engine = "Sarvam AI" if language.lower() == "hinglish" else "Whisper"
+    engine = "Sarvam AI" if language.lower() == "hinglish" else "Groq Whisper"
     print(f"Using {engine} for transcription.")
 
-    for i, chunk in enumerate(chunks):  
+    if not chunks:
+        return ""
 
-        print(f"Transcribing chunk {i + 1}/{len(chunks)}...")
+    # Sarvam path: pieces already run 6-wide per chunk, so limit chunk-level
+    # workers to 2 (semaphore still caps total in-flight requests at 6).
+    workers = 2 if language.lower() == "hinglish" else GROQ_MAX_CONCURRENCY
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        texts = list(ex.map(lambda c: transcribe_chunk(c, language=language), chunks))
 
-        text = transcribe_chunk(chunk, language=language) 
-
-        full_transcript += text + " "  
-
-    print("Transcription complete.")
-
-    return full_transcript.strip()  
+    done = sum(1 for t in texts if t)
+    print(f"Transcription complete ({done}/{len(chunks)} chunks produced text).")
+    return " ".join(t for t in texts if t).strip()

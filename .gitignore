@@ -1,5 +1,9 @@
 .env
 .env.local
+*.env
+venv/
+.venv/
+env/
 __pycache__/
 *.pyc
 downloads/
@@ -7,3 +11,5 @@ qdrant_data/
 *.wav
 *.mp3
 *.mp4
+.DS_Store
+

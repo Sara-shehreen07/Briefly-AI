@@ -51,7 +51,7 @@ Modern teams spend countless hours in meetings, resulting in lost action items, 
 
 **Briefly AI** solves this with an end-to-end multimodal pipeline:
 1. **Ingest**: Accepts YouTube URLs or local audio/video files (`.mp4`, `.mp3`, `.wav`, `.m4a`).
-2. **Transcribe**: Dual speech-to-text routing with **Groq Cloud Whisper** / **OpenAI Whisper** (English) and **Sarvam AI** (Hinglish / Indic dialects).
+2. **Transcribe**: Dual speech-to-text routing with **Groq Cloud Whisper** (English) and **Sarvam AI** (Hinglish / Indic dialects).
 3. **Synthesize**: Multi-stage **Mistral AI** extraction chains produce executive summaries, task items with assignees/deadlines, key decisions, and open questions.
 4. **Converse**: Transcript chunks are vectorized with `all-MiniLM-L6-v2` into an in-memory **Qdrant Vector Store** for context-grounded conversational Q&A.
 
@@ -124,7 +124,7 @@ sequenceDiagram
 | :--- | :--- |
 | **Frontend & UI** | [Streamlit](https://streamlit.io/) |
 | **LLM & Orchestration** | [LangChain LCEL](https://python.langchain.com/), [Mistral AI](https://mistral.ai/) (`mistral-small-latest`) |
-| **Speech-to-Text** | [Groq Cloud Whisper](https://groq.com/), [OpenAI Whisper](https://github.com/openai/whisper), [Sarvam AI](https://www.sarvam.ai/) |
+| **Speech-to-Text** | [Groq Cloud Whisper](https://groq.com/), [Sarvam AI](https://www.sarvam.ai/) |
 | **Vector DB & Search** | [Qdrant](https://qdrant.tech/) (`langchain-qdrant`, in-memory mode) |
 | **Dense Embeddings** | [Hugging Face](https://huggingface.co/) (`sentence-transformers/all-MiniLM-L6-v2`) |
 | **Audio Processing** | `FFmpeg`, `pydub`, `yt-dlp` |
@@ -181,7 +181,6 @@ Create a `.env` file in the root folder:
 GROQ_API_KEY=your_groq_api_key_here
 MISTRAL_API_KEY=your_mistral_api_key_here
 SARVAM_API_KEY=your_sarvam_api_key_here
-WHISPER_MODEL=small
 ```
 
 ### 4. Launch
@@ -200,11 +199,11 @@ $${\color{#6C5CE7}Codebase \space \color{#8E8E93}Layout}$$
 │   └── logo.png            # High-resolution vector project branding
 ├── core/
 │   ├── __init__.py         # Package namespace initializer
-│   ├── audio_processor.py  # Audio acquisition, format conversion & chunking
+│   ├── audio_processor.py  # Audio acquisition, format conversion & chunking (ephemeral temp handling)
 │   ├── extractor.py        # LCEL chains for actions, decisions & questions
 │   ├── rag_engine.py       # LangChain LCEL RAG retriever & context QA chain
 │   ├── summarize.py        # Map-Reduce summarization & title generation
-│   ├── transcriber.py      # Dual STT engine (Groq Whisper + OpenAI Whisper + Sarvam AI)
+│   ├── transcriber.py      # Dual Cloud STT engine (Groq Whisper + Sarvam AI)
 │   └── vector_store.py     # Qdrant in-memory vector store & embedding setup
 ├── app.py                  # Streamlit application entrypoint & session controller
 ├── packages.txt            # Linux container system dependencies (ffmpeg)
