@@ -6,11 +6,18 @@ from langchain_core.documents import Document
 COLLECTION_NAME = "meeting_transcript"
 EMBEDDING_MODEL  = "all-MiniLM-L6-v2"
 
+_embeddings = None
+
+
 def get_embeddings():
-    return HuggingFaceEmbeddings(
-        model_name = EMBEDDING_MODEL,
-        model_kwargs = {"device" : 'cpu'}
-    )
+    """Singleton: one MiniLM instance per process, shared across all chains."""
+    global _embeddings
+    if _embeddings is None:
+        _embeddings = HuggingFaceEmbeddings(
+            model_name=EMBEDDING_MODEL,
+            model_kwargs={"device": "cpu"},
+        )
+    return _embeddings
 
 def build_vector_store(transcript:str)->QdrantVectorStore:
     print("Building vector store")

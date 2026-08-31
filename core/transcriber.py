@@ -167,8 +167,27 @@ def transcribe_all(chunks: list, language: str = "english") -> str:
     # Sarvam path: pieces already run 6-wide per chunk, so limit chunk-level
     # workers to 2 (semaphore still caps total in-flight requests at 6).
     workers = 2 if language.lower() == "hinglish" else GROQ_MAX_CONCURRENCY
+    failures = []
+
+    def _safe(c):
+        try:
+            return transcribe_chunk(c, language=language)
+        except Exception as e:
+            failures.append((os.path.basename(c), str(e)[:120]))
+            return ""
+
     with ThreadPoolExecutor(max_workers=workers) as ex:
-        texts = list(ex.map(lambda c: transcribe_chunk(c, language=language), chunks))
+        texts = list(ex.map(_safe, chunks))
+
+    if failures:
+        print(f"WARNING: {len(failures)}/{len(chunks)} chunk(s) failed and were skipped:")
+        for name, error in failures:
+            print(f"  - {name}: {error}")
+
+    if chunks and all(not t for t in texts) and failures:
+        raise RuntimeError(
+            f"All {len(chunks)} chunk(s) failed transcription. Last error: {failures[-1][1]}"
+        )
 
     done = sum(1 for t in texts if t)
     print(f"Transcription complete ({done}/{len(chunks)} chunks produced text).")

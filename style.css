@@ -1,0 +1,261 @@
+/* ── Briefly AI · zinc-dark, shadcn-referenced ───────────────────────────
+   Scope discipline: only [data-testid] / [data-baseweb] hooks and our own
+   .bx-* classes. No emotion-hash classes, no !important arms races.      */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg: #09090b;
+  --card: #101012;
+  --card-2: #18181b;
+  --border: #27272a;
+  --fg: #fafafa;
+  --muted: #a1a1aa;
+  --faint: #71717a;
+  --ring: #d4d4d8;
+  --font-ui: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* App shell */
+.stApp { background: var(--bg) !important; font-family: var(--font-ui); }
+#MainMenu, footer, header[data-testid="stHeader"] { visibility: hidden; height: 0; }
+.block-container { padding-top: 3rem; max-width: 920px; }
+
+/* Sidebar → bordered panel */
+section[data-testid="stSidebar"] {
+  background: var(--card);
+  border-right: 1px solid var(--border);
+}
+section[data-testid="stSidebar"] .block-container { padding-top: 2rem; }
+section[data-testid="stSidebar"] hr { border-color: var(--border); }
+
+/* Inputs: zinc border, focus ring */
+[data-testid="stTextInput"] input,
+[data-baseweb="input"] {
+  background: var(--card-2) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+  color: var(--fg) !important;
+  font-family: var(--font-ui);
+}
+[data-testid="stTextInput"] input:focus,
+[data-baseweb="input"]:focus {
+  border-color: var(--ring) !important;
+  box-shadow: 0 0 0 1px var(--ring) !important;
+  outline: none !important;
+}
+
+/* Buttons: white primary on zinc (shadcn default).
+   1.62 renders buttons as [data-testid=stBaseButton-*]. */
+.stButton > button,
+button[data-testid^="stBaseButton"] {
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card-2);
+  color: var(--fg);
+  font-weight: 500;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+.stButton > button:hover,
+button[data-testid^="stBaseButton"]:hover { background: #1f1f23; border-color: #3f3f46; }
+.stButton > button:focus-visible,
+button[data-testid^="stBaseButton"]:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
+.stButton > button[kind="primary"],
+button[data-testid="stBaseButton-primary"],
+button[data-testid="stBaseButton-headerNoPadding"][kind="primary"] {
+  background: var(--fg);
+  color: var(--bg);
+  border-color: var(--fg);
+}
+.stButton > button[kind="primary"]:hover,
+button[data-testid="stBaseButton-primary"]:hover { background: #e4e4e7; }
+
+/* Tabs → shadcn muted-underline tabs. 1.62 DOM: [role=tablist] + [data-testid=stTab]. */
+.stTabs [role="tablist"] {
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--border);
+}
+[data-testid="stTab"] {
+  background: transparent;
+  border-radius: 6px 6px 0 0;
+  padding: 0.5rem 0.9rem;
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+[data-testid="stTab"]:hover { color: var(--fg); background: #141416; }
+[data-testid="stTab"][aria-selected="true"] {
+  background: transparent !important;
+  color: var(--fg) !important;
+  box-shadow: inset 0 -2px 0 var(--fg);
+}
+
+/* Pills → shadcn toggle-group. 1.62 DOM: [data-testid=stButtonGroup] > [role=radiogroup] > button[data-variant=pills] */
+[data-testid="stButtonGroup"] [role="radiogroup"] {
+  background: var(--card-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+}
+[data-testid="stButtonGroup"] button[data-variant="pills"] {
+  color: var(--muted);
+  font-weight: 500;
+  border-radius: 6px;
+  border: 1px solid transparent;
+}
+[data-testid="stButtonGroup"] button[data-variant="pills"]:hover { color: var(--fg); }
+[data-testid="stButtonGroup"] button[data-variant="pills"][data-selected="true"],
+[data-testid="stButtonGroup"] button[data-variant="pills"][aria-checked="true"],
+[data-testid="stButtonGroup"] button[data-variant="pills"][aria-pressed="true"] {
+  background: var(--fg) !important;
+  color: var(--bg) !important;
+}
+
+/* Card container: st.container(border=True) wraps content in a bordered
+   stVerticalBlock (1.62 — no dedicated testid). :has() targets the one
+   directly wrapping our tabs; :has not supported → harmless no-op. */
+[data-testid="stVerticalBlock"]:has(> [data-testid="stTabs"]) {
+  background: var(--card);
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+}
+
+/* Chat: zinc cards */
+[data-testid="stChatMessage"] {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+}
+[data-testid="stChatInput"] textarea,
+[data-testid="stChatInput"] > div {
+  background: var(--card-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+[data-testid="stChatInput"] textarea:focus {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 1px var(--ring);
+  outline: none;
+}
+
+/* Content typography */
+.stMarkdown { color: var(--fg); font-size: 0.9375rem; line-height: 1.65; }
+.stMarkdown h1, .stMarkdown h2, .stMarkdown h3 { letter-spacing: -0.01em; }
+.stMarkdown a { color: #e4e4e7; text-decoration: underline; text-underline-offset: 2px; }
+.stMarkdown strong { color: var(--fg); font-weight: 600; }
+.stMarkdown code {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  background: var(--card-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+}
+[data-testid="stAlert"] { border-radius: 10px; }
+[data-testid="stSpinner"] { color: var(--muted); }
+
+/* Transcript textarea: mono, muted */
+.stTextArea textarea {
+  font-family: var(--font-mono) !important;
+  font-size: 0.8125rem !important;
+  line-height: 1.6 !important;
+  color: var(--muted) !important;
+  background: var(--card-2) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+}
+
+/* ── Briefly's own injected DOM ─────────────────────────────────────────── */
+
+/* Document header: title + provenance badges (signature element) */
+.bx-header { margin: 0 0 0.25rem 0; }
+.bx-header h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+  margin: 0;
+}
+.bx-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.75rem 0 0.5rem; }
+.bx-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  background: var(--card-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.25rem 0.65rem;
+}
+.bx-badge .bx-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #22c55e;
+}
+
+/* Sidebar brand */
+.bx-brand {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 0.25rem;
+}
+.bx-brand-sub {
+  font-size: 0.75rem;
+  color: var(--faint);
+  margin-bottom: 1.5rem;
+}
+
+/* Empty state: centered invitation */
+.bx-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 55vh;
+  gap: 0.75rem;
+}
+.bx-empty .bx-mark {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--fg);
+  background: var(--card-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem 1.75rem;
+}
+.bx-empty .bx-title {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--fg);
+  margin-top: 0.5rem;
+}
+.bx-empty .bx-sub {
+  font-size: 0.875rem;
+  color: var(--muted);
+  max-width: 42ch;
+  line-height: 1.6;
+}
+
+/* Responsive: stack measure, keep touch targets ≥44px */
+@media (max-width: 640px) {
+  .block-container { padding-top: 1.5rem; }
+  .bx-header h1 { font-size: 1.375rem; }
+  .stButton > button { min-height: 44px; }
+  [data-testid="stPills"] button { min-height: 40px; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .stButton > button { transition: none; }
+}

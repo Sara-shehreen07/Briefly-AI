@@ -18,7 +18,7 @@ langchain-huggingface>=0.0.3      # LangChain ↔ HuggingFace embeddings bridge
 langchain-qdrant>=0.1.0           # Qdrant in-memory vector store
 
 # ── Cloud APIs & UI ───────────────────────────────────────────────────────────
-streamlit>=1.35.0                 # Web application framework
+streamlit>=1.41.0                 # Web app framework (st.pills requires 1.41+)
 
 # ── Utilities ─────────────────────────────────────────────────────────────────
 python-dotenv>=1.0.0              # Load API keys from .env

@@ -107,7 +107,7 @@ sequenceDiagram
 
 | Capability | Technical Mechanism | Output |
 | :--- | :--- | :--- |
-| **Multimodal Ingestion** | `yt-dlp` stream extraction + `pydub` audio conversion | 16kHz mono WAV format |
+| **Multimodal Ingestion** | `yt-dlp` stream extraction + streaming `ffmpeg` conversion | 16kHz mono WAV format |
 | **Dual-Engine STT** | Groq Cloud Whisper (`whisper-large-v3`) + Sarvam AI (`saaras:v2.5`) | Timestamped raw text transcript |
 | **Map-Reduce Synthesis** | LangChain LCEL map-reduce chain with Mistral AI | Structured executive bullet points |
 | **Action Item Mining** | Zero-shot structured extraction prompts | Task description, owner, deadline |
@@ -127,7 +127,7 @@ sequenceDiagram
 | **Speech-to-Text** | [Groq Cloud Whisper](https://groq.com/), [Sarvam AI](https://www.sarvam.ai/) |
 | **Vector DB & Search** | [Qdrant](https://qdrant.tech/) (`langchain-qdrant`, in-memory mode) |
 | **Dense Embeddings** | [Hugging Face](https://huggingface.co/) (`sentence-transformers/all-MiniLM-L6-v2`) |
-| **Audio Processing** | `FFmpeg`, `pydub`, `yt-dlp` |
+| **Audio Processing** | `FFmpeg`, `yt-dlp` |
 | **Deployment** | [Streamlit Community Cloud](https://share.streamlit.io) |
 
 </div>
