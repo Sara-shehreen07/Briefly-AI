@@ -46,16 +46,11 @@ if "rag_chain" not in st.session_state:
 with st.sidebar:
     st.markdown(
         '<div class="bx-brand">Briefly</div>'
-        '<div class="bx-brand-sub">Meeting notes from any video or audio</div>',
+        '<div class="bx-brand-sub">Meeting notes from any recording</div>',
         unsafe_allow_html=True,
     )
-    source = st.text_input(
-        "YouTube URL or local file path",
-        placeholder="https://youtube.com/watch?v=…",
-        label_visibility="collapsed",
-    )
     uploaded_file = st.file_uploader(
-        "Upload audio/video",
+        "Upload audio or video recording",
         type=["mp3", "wav", "m4a", "mp4", "webm", "ogg"],
         label_visibility="collapsed",
     )
@@ -71,19 +66,15 @@ with st.sidebar:
 error_msg = None
 
 if run_clicked:
-    input_source = ""
-    if uploaded_file is not None:
+    if uploaded_file is None:
+        error_msg = "Please upload an audio or video file first."
+    else:
         upload_dir = os.path.join(tempfile.gettempdir(), "briefly_uploads")
         os.makedirs(upload_dir, exist_ok=True)
         input_source = os.path.join(upload_dir, uploaded_file.name)
         with open(input_source, "wb") as f:
             f.write(uploaded_file.getbuffer())
-    elif source.strip():
-        input_source = source.strip()
 
-    if not input_source:
-        error_msg = "Please enter a YouTube URL or upload an audio/video file."
-    else:
         st.session_state.result = None
         st.session_state.chat_history = []
         st.session_state.rag_chain = None
@@ -117,7 +108,7 @@ if result is None:
             '<div class="bx-empty">'
             '<div class="bx-mark">▚ briefly</div>'
             '<div class="bx-title">Turn meetings into actionable notes</div>'
-            '<div class="bx-sub">Paste a video link or audio file in the sidebar to extract summaries, decisions, and chat with the transcript.</div>'
+            '<div class="bx-sub">Upload an audio or video file in the sidebar to extract summaries, decisions, and chat with the transcript.</div>'
             "</div>",
             unsafe_allow_html=True,
         )
