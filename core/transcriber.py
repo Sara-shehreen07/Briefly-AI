@@ -1,9 +1,10 @@
 import os
+import glob
+import subprocess
 from concurrent.futures import ThreadPoolExecutor
 from threading import BoundedSemaphore
 
 import requests
-from pydub import AudioSegment
 from dotenv import load_dotenv
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception
 
@@ -81,19 +82,28 @@ def _send_to_sarvam(piece_path: str) -> str:
 def transcribe_chunk_sarvam(chunk_path: str) -> str:
     """
     Sarvam sync API only accepts <=30s audio. We split this chunk into
-    25-second pieces, send them concurrently (order-preserving), and join.
+    25-second pieces via streaming ffmpeg segment muxer (no RAM decode),
+    send them concurrently (order-preserving), and join.
     """
-    audio = AudioSegment.from_wav(chunk_path)
-    piece_ms = SARVAM_PIECE_SECONDS * 1000
-
-    piece_paths = []
-    for i, start in enumerate(range(0, len(audio), piece_ms)):
-        piece = audio[start : start + piece_ms]
-        if len(piece) == 0:
-            continue
-        piece_path = f"{chunk_path}_sv_{i}.wav"
-        piece.export(piece_path, format="wav")
-        piece_paths.append(piece_path)
+    piece_dir = os.path.dirname(chunk_path) or "."
+    base_name = os.path.splitext(os.path.basename(chunk_path))[0]
+    pattern = os.path.join(piece_dir, f"{base_name}_sv_%03d.wav")
+    try:
+        subprocess.run(
+            [
+                "ffmpeg", "-y", "-i", chunk_path,
+                "-f", "segment", "-segment_time", str(SARVAM_PIECE_SECONDS),
+                "-c", "copy", pattern,
+            ],
+            check=True, capture_output=True,
+        )
+    except subprocess.CalledProcessError as e:
+        raise ValueError(
+            f"Sarvam pre-slicing failed for '{chunk_path}': "
+            f"{e.stderr.decode(errors='replace')[-300:] if e.stderr else 'unknown ffmpeg error'}"
+        ) from e
+    # NOTE: glob treats '%' literally, so match ffmpeg's %03d output with '*'
+    piece_paths = sorted(glob.glob(os.path.join(piece_dir, f"{base_name}_sv_*.wav")))
 
     try:
         with ThreadPoolExecutor(max_workers=SARVAM_MAX_CONCURRENCY) as ex:

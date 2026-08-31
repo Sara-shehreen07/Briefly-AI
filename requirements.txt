@@ -3,8 +3,8 @@
 
 # ── Audio / Video acquisition ─────────────────────────────────────────────────
 yt-dlp>=2024.4.9                  # Download audio from YouTube URLs
-pydub>=0.25.1                     # 25s sub-slicing in core/transcriber.py (Sarvam API limit)
-                                   # NOTE: audio_processor.py uses ffmpeg directly
+# All audio conversion/chunking uses the ffmpeg binary directly (streaming,
+# zero-RAM); no Python audio library needed.
 
 # ── LLM Orchestration — LangChain LCEL + Mistral ──────────────────────────────
 langchain-core>=0.2.0
@@ -13,11 +13,9 @@ langchain-text-splitters>=0.2.0   # Directly imported (summarize.py, vector_stor
 mistralai>=1.0.0                  # Official Mistral Python client (1.x required by langchain-mistralai)
 
 # ── RAG Pipeline & Embeddings ─────────────────────────────────────────────────
-sentence-transformers>=3.0.0      # HuggingFace embedding models
+sentence-transformers>=3.0.0      # HuggingFace embedding models (pulls torch, huggingface-hub, transformers)
 langchain-huggingface>=0.0.3      # LangChain ↔ HuggingFace embeddings bridge
 langchain-qdrant>=0.1.0           # Qdrant in-memory vector store
-huggingface-hub>=0.23.0           # Model downloading from HuggingFace Hub
-torch>=2.2.0                      # PyTorch backend for sentence embeddings
 
 # ── Cloud APIs & UI ───────────────────────────────────────────────────────────
 streamlit>=1.35.0                 # Web application framework
