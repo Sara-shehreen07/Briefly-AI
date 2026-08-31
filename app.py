@@ -100,11 +100,8 @@ if result is None:
         st.markdown(
             '<div class="bx-empty">'
             '<div class="bx-mark">▚ briefly</div>'
-            '<div class="bx-title">Turn a meeting into notes</div>'
-            '<div class="bx-sub">Paste a YouTube URL or local file path in the '
-            "sidebar. Briefly transcribes it, then pulls out the summary, action "
-            "items, decisions and open questions — and lets you chat with the "
-            "transcript.</div>"
+            '<div class="bx-title">Turn meetings into actionable notes</div>'
+            '<div class="bx-sub">Paste a video link or audio file in the sidebar to extract summaries, decisions, and chat with the transcript.</div>'
             "</div>",
             unsafe_allow_html=True,
         )

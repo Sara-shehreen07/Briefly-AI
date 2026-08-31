@@ -12,4 +12,4 @@ qdrant_data/
 *.mp3
 *.mp4
 .DS_Store
-
+notes/

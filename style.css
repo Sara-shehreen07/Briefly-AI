@@ -19,8 +19,39 @@
 
 /* App shell */
 .stApp { background: var(--bg) !important; font-family: var(--font-ui); }
-#MainMenu, footer, header[data-testid="stHeader"] { visibility: hidden; height: 0; }
-.block-container { padding-top: 3rem; max-width: 920px; }
+header[data-testid="stHeader"] { background: transparent !important; }
+[data-testid="stToolbar"] { background: transparent !important; visibility: visible !important; }
+#MainMenu, [data-testid="stMainMenu"], .stAppDeployButton, [data-testid="stAppDeployButton"], footer {
+  display: none !important;
+}
+.block-container { padding-top: 3.5rem; max-width: 920px; }
+
+/* Sidebar toggle controls (expand/collapse icons) */
+[data-testid="stExpandSidebarButton"],
+[data-testid="stSidebarCollapsedControl"] {
+  visibility: visible !important;
+  display: inline-flex !important;
+}
+[data-testid="stExpandSidebarButton"] button,
+button[data-testid="stExpandSidebarButton"],
+[data-testid="stSidebarCollapsedControl"] button {
+  background: var(--card-2) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--fg) !important;
+  border-radius: 8px !important;
+}
+[data-testid="stExpandSidebarButton"]:hover button,
+button[data-testid="stExpandSidebarButton"]:hover,
+[data-testid="stSidebarCollapsedControl"] button:hover {
+  background: #1f1f23 !important;
+  border-color: #3f3f46 !important;
+}
+[data-testid="stSidebarCollapseButton"] button {
+  color: var(--muted) !important;
+}
+[data-testid="stSidebarCollapseButton"] button:hover {
+  color: var(--fg) !important;
+}
 
 /* Sidebar → bordered panel */
 section[data-testid="stSidebar"] {
